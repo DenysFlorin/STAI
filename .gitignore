@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+.idea/
+.vscode/
+
+models/
+checkpoints/
+runs/
+
+D19-55-54-61.txt
+data/semeval2014/xml/

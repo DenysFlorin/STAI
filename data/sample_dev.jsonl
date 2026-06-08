@@ -1,0 +1,2 @@
+{"tokens": ["The", "screen", "is", "bright", ",", "but", "the", "battery", "lasts", "briefly", "."], "tags": ["O", "S-POS", "O", "O", "O", "O", "O", "S-NEG", "O", "O", "O"]}
+{"tokens": ["The", "service", "was", "friendly", ",", "but", "the", "food", "was", "cold", "."], "tags": ["O", "S-POS", "O", "O", "O", "O", "O", "S-NEG", "O", "O", "O"]}

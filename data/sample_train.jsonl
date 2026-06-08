@@ -1,0 +1,6 @@
+{"tokens": ["The", "screen", "has", "vivid", "colors", ",", "but", "the", "battery", "life", "is", "disappointing", "."], "tags": ["O", "S-POS", "O", "O", "O", "O", "O", "O", "B-NEG", "E-NEG", "O", "O", "O"]}
+{"tokens": ["The", "camera", "takes", "clear", "photos", ",", "but", "the", "sound", "is", "weak", "."], "tags": ["O", "S-POS", "O", "O", "O", "O", "O", "O", "S-NEG", "O", "O", "O"]}
+{"tokens": ["The", "keyboard", "is", "comfortable", "and", "the", "price", "is", "fair", "."], "tags": ["O", "S-POS", "O", "O", "O", "O", "S-POS", "O", "O", "O"]}
+{"tokens": ["Delivery", "was", "fast", ",", "but", "the", "package", "was", "damaged", "."], "tags": ["S-POS", "O", "O", "O", "O", "O", "S-NEG", "O", "O", "O"]}
+{"tokens": ["The", "menu", "is", "varied", ",", "while", "the", "service", "remains", "slow", "."], "tags": ["O", "S-POS", "O", "O", "O", "O", "O", "S-NEG", "O", "O", "O"]}
+{"tokens": ["The", "battery", "lasts", "long", "and", "the", "design", "is", "pleasant", "."], "tags": ["O", "S-POS", "O", "O", "O", "O", "S-POS", "O", "O", "O"]}
