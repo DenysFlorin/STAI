@@ -38,6 +38,21 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+### Optional GPU setup
+
+The training scripts automatically use CUDA when a CUDA-enabled PyTorch build is installed.
+On this Windows machine with an NVIDIA GPU, the CUDA 12.8 PyTorch wheel worked:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --upgrade --force-reinstall torch --index-url https://download.pytorch.org/whl/cu128
+```
+
+Verify that PyTorch can see the GPU:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
+```
+
 ## Train on the sample data
 
 ```powershell
@@ -67,11 +82,20 @@ data/semeval2014/laptops_dev.jsonl
 data/semeval2014/laptops_test.jsonl
 ```
 
+No-aspect sentences are retained with all-`O` tags. This gives the current split sizes:
+
+```text
+restaurants_train: 2737  restaurants_dev: 304  restaurants_test: 800
+laptops_train:     2741  laptops_dev:     304  laptops_test:     800
+```
+
 Convert a SemEval train XML file into this project's JSONL format:
 
 ```powershell
 python -m src.convert_semeval --input path\to\Restaurants_Train_v2.xml --output data\restaurants_train.jsonl --dev-output data\restaurants_dev.jsonl
 ```
+
+Use `--drop-no-aspect` if you intentionally want to remove no-aspect sentences.
 
 Then fine-tune:
 
@@ -79,11 +103,38 @@ Then fine-tune:
 python -m src.train --model-name bert-base-uncased --train-file data\semeval2014\restaurants_train.jsonl --dev-file data\semeval2014\restaurants_dev.jsonl --output-dir models\bert-restaurants-absa --epochs 3
 ```
 
+Training saves the best checkpoint and `train_metrics.json` in the output directory.
+
+To train the comparison baseline with frozen BERT embeddings and only the linear head trainable:
+
+```powershell
+python -m src.train --model-name bert-base-uncased --train-file data\semeval2014\restaurants_train.jsonl --dev-file data\semeval2014\restaurants_dev.jsonl --output-dir models\frozen-bert-restaurants-absa --epochs 10 --batch-size 8 --learning-rate 1e-3 --freeze-encoder
+```
+
 Evaluate on the test set:
 
 ```powershell
 python -m src.test_model --model-dir models\bert-restaurants-absa --test-file data\semeval2014\restaurants_test.jsonl
 ```
+
+Evaluation saves `test_metrics.json` in the model directory.
+
+Run a multi-seed experiment and aggregate mean/std metrics:
+
+```powershell
+python -m src.run_experiments --model-name bert-base-uncased --train-file data\semeval2014\restaurants_train.jsonl --dev-file data\semeval2014\restaurants_dev.jsonl --test-file data\semeval2014\restaurants_test.jsonl --output-dir models\multiseed-restaurants-bert-linear --seeds 13,21,42 --epochs 3 --batch-size 8 --test-batch-size 16 --no-progress
+```
+
+The summary is written to `summary.json` in the experiment output directory. Test metrics include overall span F1 and POS/NEG/NEU per-sentiment metrics.
+
+Run a heavier single-seed GPU experiment:
+
+```powershell
+python -m src.train --model-name bert-base-uncased --train-file data\semeval2014\restaurants_train.jsonl --dev-file data\semeval2014\restaurants_dev.jsonl --output-dir models\restaurants-bert-linear-8ep-seed13 --epochs 8 --batch-size 8 --seed 13 --no-progress
+python -m src.test_model --model-dir models\restaurants-bert-linear-8ep-seed13 --test-file data\semeval2014\restaurants_test.jsonl --batch-size 16
+```
+
+This reached test F1 `0.7418`; the best checkpoint was selected at epoch 7 by dev F1.
 
 ## Predict
 

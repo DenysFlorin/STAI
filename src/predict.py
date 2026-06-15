@@ -3,12 +3,13 @@ import argparse
 import torch
 from transformers import AutoModelForTokenClassification, AutoTokenizer
 
+from .convert_semeval import tokenize_with_offsets
 from .evaluate import tags_to_spans
 from .labels import ID_TO_LABEL, LABELS, LABEL_TO_ID
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Predict Romanian aspect sentiments.")
+    parser = argparse.ArgumentParser(description="Predict aspect sentiments with a fine-tuned ABSA model.")
     parser.add_argument("--model-dir", default="models/bert-restaurants-absa")
     parser.add_argument("--text", required=True)
     parser.add_argument("--max-length", type=int, default=128)
@@ -16,14 +17,13 @@ def parse_args() -> argparse.Namespace:
 
 
 def simple_tokenize(text: str) -> list[str]:
-    for punctuation in [",", ".", "!", "?", ";", ":"]:
-        text = text.replace(punctuation, f" {punctuation} ")
-    return text.split()
+    return [token.token for token in tokenize_with_offsets(text)]
 
 
 def main() -> None:
     args = parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"using device: {device}")
     tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
     model = AutoModelForTokenClassification.from_pretrained(
         args.model_dir,

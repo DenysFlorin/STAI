@@ -57,7 +57,11 @@ def tag_tokens(tokens: list[TokenOffset], aspects: list[AspectTerm]) -> list[str
     return tags
 
 
-def parse_sentence(sentence_node: ET.Element, skip_conflict: bool) -> dict[str, list[str]] | None:
+def parse_sentence(
+    sentence_node: ET.Element,
+    skip_conflict: bool,
+    drop_no_aspect: bool,
+) -> dict[str, list[str]] | None:
     text_node = sentence_node.find("text")
     if text_node is None or not text_node.text:
         return None
@@ -83,7 +87,7 @@ def parse_sentence(sentence_node: ET.Element, skip_conflict: bool) -> dict[str, 
                 )
             )
 
-    if not aspects:
+    if drop_no_aspect and not aspects:
         return None
 
     return {
@@ -92,13 +96,21 @@ def parse_sentence(sentence_node: ET.Element, skip_conflict: bool) -> dict[str, 
     }
 
 
-def convert_xml(input_file: str | Path, skip_conflict: bool = True) -> list[dict[str, list[str]]]:
+def convert_xml(
+    input_file: str | Path,
+    skip_conflict: bool = True,
+    drop_no_aspect: bool = False,
+) -> list[dict[str, list[str]]]:
     tree = ET.parse(input_file)
     root = tree.getroot()
     records: list[dict[str, list[str]]] = []
 
     for sentence_node in root.findall(".//sentence"):
-        record = parse_sentence(sentence_node, skip_conflict=skip_conflict)
+        record = parse_sentence(
+            sentence_node,
+            skip_conflict=skip_conflict,
+            drop_no_aspect=drop_no_aspect,
+        )
         if record is not None:
             records.append(record)
     return records
@@ -120,12 +132,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dev-ratio", type=float, default=0.1, help="Hold-out ratio when --dev-output is used.")
     parser.add_argument("--seed", type=int, default=13)
     parser.add_argument("--keep-conflict", action="store_true", help="Keep conflict labels if you add a mapping first.")
+    parser.add_argument("--drop-no-aspect", action="store_true", help="Drop sentences that have no aspect terms.")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    records = convert_xml(args.input, skip_conflict=not args.keep_conflict)
+    records = convert_xml(
+        args.input,
+        skip_conflict=not args.keep_conflict,
+        drop_no_aspect=args.drop_no_aspect,
+    )
 
     if args.dev_output:
         random.Random(args.seed).shuffle(records)
@@ -143,4 +160,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
